@@ -1,4 +1,4 @@
-package com.financli.financli;
+package com.financli;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
