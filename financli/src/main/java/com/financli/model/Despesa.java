@@ -1,7 +1,6 @@
 package com.financli.model;
 
 import jakarta.persistence.*;
-import org.springframework.data.annotation.Id;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,7 +25,7 @@ public class Despesa {
     @Column(nullable = false)
     LocalDate data;
 
-    public Despesa(Long id, String descricao, BigDecimal valor, Categoria categoria, LocalDate data) {
+    public Despesa() {
         this.id = id;
         this.descricao = descricao;
         this.valor = valor;
