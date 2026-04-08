@@ -1,17 +1,28 @@
 spring:
   application:
     name: financli
+
+  #BD EM H2 PERSISTINDO EM ARQUIVO
   datasource:
     url: jdbc:h2:file:./data/financli
     driver-class-name: org.h2.Driver
     username: sa
     password:
+
+  # JPA / HIBERNATE
   jpa:
     hibernate:
       ddl-auto: update
+    show-sql: false
+
+  # CONFIGURAÇÃO DE MAIN
   main:
+    web-application-type: none
     banner-mode: off
+
+# CONFIGURAÇÃO DE LOGS
 logging:
   level:
     root: WARN
     org.springframework: WARN
+    com.financli: INFO
