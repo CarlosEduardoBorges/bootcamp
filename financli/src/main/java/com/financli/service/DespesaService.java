@@ -41,13 +41,15 @@ public class DespesaService {
         return repository.save(d);
     }
 
-    public List<Despesa> listarTodas(){
+    public List<Despesa> listarTodas() {
         return repository.findAll();
     }
 
     public List<Despesa> listarPorCategoria(Categoria categoria) {
 
-        if (categoria == null) throw new IllegalArgumentException("Categoria inválida");
+        if (categoria == null) {
+            throw new IllegalArgumentException("Categoria inválida");
+        }
 
         return repository.findByCategoria(categoria);
     }
