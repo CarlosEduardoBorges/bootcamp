@@ -4,6 +4,7 @@ import com.financli.model.Categoria;
 import com.financli.model.Despesa;
 import com.financli.service.DespesaService;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 @Component
+@Profile("!test")
 public class MenuCLI implements CommandLineRunner {
 
     private final DespesaService service;
@@ -79,7 +81,9 @@ public class MenuCLI implements CommandLineRunner {
         }
 
         Categoria categoria = lerCategoria();
-        if (categoria == null) return;
+        if (categoria == null) {
+            return;
+        }
 
         try {
             Despesa salva = service.adicionarDespesa(descricao, valor, categoria);
@@ -103,7 +107,9 @@ public class MenuCLI implements CommandLineRunner {
     private void filtrarPorCategoria() {
         System.out.println("\n--- Filtrar por Categoria ---");
         Categoria categoria = lerCategoria();
-        if (categoria == null) return;
+        if (categoria == null) {
+            return;
+        }
 
         List<Despesa> lista = service.listarPorCategoria(categoria);
         if (lista.isEmpty()) {
