@@ -18,6 +18,13 @@ import java.util.Scanner;
 @Profile("!test")
 public class MenuCLI implements CommandLineRunner {
 
+    private static final String RESET = "\u001B[0m";
+    private static final String GREEN = "\u001B[32m";
+    private static final String YELLOW = "\u001B[33m";
+    private static final String RED = "\u001B[31m";
+    private static final String BOLD = "\u001B[1m";
+    private static final String COL_SEP = " | ";
+
     private final DespesaService service;
     private final Scanner scanner = new Scanner(System.in);
     private final NumberFormat moeda = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
@@ -39,29 +46,33 @@ public class MenuCLI implements CommandLineRunner {
                 case "4" -> exibirResumo();
                 case "5" -> removerDespesa();
                 case "0" -> {
-                    System.out.println("\nAté logo! Cuide bem do seu dinheiro.");
+                    System.out.println("\n" + GREEN + "Até logo! Cuide bem do seu dinheiro." + RESET);
                     scanner.close();
                     return;
                 }
-                default -> System.out.println("\nOpção inválida. Digite um número de 0 a 5.");
+                default -> System.out.println(RED + "\nOpção inválida. Digite um número de 0 a 5." + RESET);
             }
         }
     }
 
     private void exibirBoasVindas() {
-        System.out.println("========================================");
-        System.out.println("       FinanCLI — Controle de Gastos    ");
-        System.out.println("========================================");
+        System.out.println(BOLD + "\n========================================" + RESET);
+        System.out.println(BOLD + "   Bem-vindo ao FinanCLI v1.0.0" + RESET);
+        System.out.println(BOLD + "   Seu controle de gastos pessoais" + RESET);
+        System.out.println(BOLD + "========================================" + RESET);
     }
 
     private void exibirMenu() {
-        System.out.println("\n--- Menu Principal ---");
-        System.out.println("1. Registrar despesa");
-        System.out.println("2. Listar todas as despesas");
-        System.out.println("3. Filtrar por categoria");
-        System.out.println("4. Ver resumo financeiro");
-        System.out.println("5. Remover despesa");
-        System.out.println("0. Sair");
+        System.out.println("\n+---------------------------------------+");
+        System.out.println(BOLD + "|      FinanCLI - Menu Principal        |" + RESET);
+        System.out.println("+---------------------------------------+");
+        System.out.println("|  1. Registrar despesa                 |");
+        System.out.println("|  2. Listar todas as despesas          |");
+        System.out.println("|  3. Filtrar por categoria             |");
+        System.out.println("|  4. Ver resumo financeiro             |");
+        System.out.println("|  5. Remover despesa                   |");
+        System.out.println("|  0. Sair                              |");
+        System.out.println("+---------------------------------------+");
         System.out.print("Escolha uma opção: ");
     }
 
@@ -76,7 +87,7 @@ public class MenuCLI implements CommandLineRunner {
         try {
             valor = new BigDecimal(scanner.nextLine().trim().replace(",", "."));
         } catch (NumberFormatException e) {
-            System.out.println("Valor inválido. Use apenas números, ex: 29.90");
+            System.out.println(RED + "Valor inválido. Use apenas números, ex: 29.90" + RESET);
             return;
         }
 
@@ -87,20 +98,20 @@ public class MenuCLI implements CommandLineRunner {
 
         try {
             Despesa salva = service.adicionarDespesa(descricao, valor, categoria);
-            System.out.println("Despesa registrada com sucesso! ID: " + salva.getId());
+            System.out.println(GREEN + "Despesa registrada com sucesso! ID: " + salva.getId() + RESET);
         } catch (IllegalArgumentException e) {
-            System.out.println("Erro: " + e.getMessage());
+            System.out.println(RED + "Erro: " + e.getMessage() + RESET);
         }
     }
 
     private void listarTodas() {
         List<Despesa> lista = service.listarTodas();
-        System.out.println("\n--- Todas as Despesas ---");
+        System.out.println();
         if (lista.isEmpty()) {
-            System.out.println("Nenhuma despesa registrada ainda.");
+            System.out.println(YELLOW + "Nenhuma despesa registrada ainda." + RESET);
             return;
         }
-        lista.forEach(d -> System.out.println(formatarDespesa(d)));
+        imprimirTabelaDespesas(lista);
         System.out.println("Total: " + lista.size() + " despesa(s).");
     }
 
@@ -110,30 +121,47 @@ public class MenuCLI implements CommandLineRunner {
         if (categoria == null) {
             return;
         }
-
         List<Despesa> lista = service.listarPorCategoria(categoria);
+        System.out.println();
         if (lista.isEmpty()) {
-            System.out.println("Nenhuma despesa encontrada para: " + categoria);
+            System.out.println(YELLOW + "Nenhuma despesa encontrada para: " + categoria + RESET);
             return;
         }
-        lista.forEach(d -> System.out.println(formatarDespesa(d)));
+        imprimirTabelaDespesas(lista);
     }
 
     private void exibirResumo() {
         System.out.println("\n--- Resumo Financeiro ---");
-
         BigDecimal total = service.calcularTotalGeral();
-        System.out.println("Total geral: " + moeda.format(total));
-
         Map<Categoria, BigDecimal> porCategoria = service.calcularTotalPorCategoria();
+
         if (porCategoria.isEmpty()) {
-            System.out.println("Sem despesas registradas.");
+            System.out.println(YELLOW + "Sem despesas registradas." + RESET);
             return;
         }
-        System.out.println("\nPor categoria:");
+
+        String hCat = "Categoria";
+        String hVal = "Total";
+        int wCat = Math.max(hCat.length(), porCategoria.keySet().stream()
+                .mapToInt(c -> c.name().length()).max().orElse(10));
+        int wVal = Math.max(hVal.length(), porCategoria.values().stream()
+                .mapToInt(v -> moeda.format(v).length()).max().orElse(10));
+
+        String linha = "+" + "-".repeat(wCat + 2) + "+" + "-".repeat(wVal + 2) + "+";
+        System.out.println(linha);
+        System.out.printf(BOLD + "| %-" + wCat + "s | %-" + wVal + "s |" + RESET + "%n",
+                hCat, hVal);
+        System.out.println(linha);
+
         porCategoria.forEach((cat, val) ->
-                System.out.printf("  %-15s %s%n", cat, moeda.format(val))
+                System.out.printf("| %-" + wCat + "s | %-" + wVal + "s |%n",
+                        cat.name(), moeda.format(val))
         );
+
+        System.out.println(linha);
+        System.out.printf(BOLD + "| %-" + wCat + "s | %-" + wVal + "s |" + RESET + "%n",
+                "TOTAL GERAL", moeda.format(total));
+        System.out.println(linha);
     }
 
     private void removerDespesa() {
@@ -145,16 +173,57 @@ public class MenuCLI implements CommandLineRunner {
         try {
             id = Long.parseLong(scanner.nextLine().trim());
         } catch (NumberFormatException e) {
-            System.out.println("ID inválido. Digite apenas números.");
+            System.out.println(RED + "ID inválido. Digite apenas números." + RESET);
             return;
         }
 
         boolean removida = service.removerDespesa(id);
         if (removida) {
-            System.out.println("Despesa removida com sucesso.");
+            System.out.println(GREEN + "Despesa removida com sucesso." + RESET);
         } else {
-            System.out.println("ID não encontrado. Nenhuma despesa foi removida.");
+            System.out.println(RED + "ID não encontrado. Nenhuma despesa foi removida." + RESET);
         }
+    }
+
+    private void imprimirTabelaDespesas(List<Despesa> lista) {
+        String hId = "ID";
+        String hDesc = "Descrição";
+        String hVal = "Valor";
+        String hCat = "Categoria";
+        String hData = "Data";
+
+        int wId = Math.max(hId.length(),
+                lista.stream().mapToInt(d -> d.getId().toString().length()).max().orElse(2));
+        int wDesc = Math.max(hDesc.length(),
+                lista.stream().mapToInt(d -> d.getDescricao().length()).max().orElse(10));
+        int wVal = Math.max(hVal.length(),
+                lista.stream().mapToInt(d -> moeda.format(d.getValor()).length()).max().orElse(10));
+        int wCat = Math.max(hCat.length(),
+                lista.stream().mapToInt(d -> d.getCategoria().name().length()).max().orElse(10));
+        int wData = Math.max(hData.length(), 10);
+
+        String linha = "+" + "-".repeat(wId + 2)
+                + "+" + "-".repeat(wDesc + 2)
+                + "+" + "-".repeat(wVal + 2)
+                + "+" + "-".repeat(wCat + 2)
+                + "+" + "-".repeat(wData + 2) + "+";
+
+        System.out.println(linha);
+        System.out.printf(BOLD + "| %-" + wId + "s | %-" + wDesc + "s | %-"
+                        + wVal + "s | %-" + wCat + "s | %-" + wData + "s |" + RESET + "%n",
+                hId, hDesc, hVal, hCat, hData);
+        System.out.println(linha);
+
+        for (Despesa d : lista) {
+            System.out.printf("| %-" + wId + "s | %-" + wDesc + "s | %-"
+                            + wVal + "s | %-" + wCat + "s | %-" + wData + "s |%n",
+                    d.getId(),
+                    d.getDescricao(),
+                    moeda.format(d.getValor()),
+                    d.getCategoria().name(),
+                    d.getData());
+        }
+        System.out.println(linha);
     }
 
     private Categoria lerCategoria() {
@@ -164,27 +233,16 @@ public class MenuCLI implements CommandLineRunner {
             System.out.printf("  %d. %s%n", i + 1, categorias[i]);
         }
         System.out.print("Escolha o número da categoria: ");
-
         try {
             int idx = Integer.parseInt(scanner.nextLine().trim()) - 1;
             if (idx < 0 || idx >= categorias.length) {
-                System.out.println("Opção fora do intervalo válido.");
+                System.out.println(RED + "Opção fora do intervalo válido." + RESET);
                 return null;
             }
             return categorias[idx];
         } catch (NumberFormatException e) {
-            System.out.println("Entrada inválida. Digite o número da categoria.");
+            System.out.println(RED + "Entrada inválida. Digite o número da categoria." + RESET);
             return null;
         }
-    }
-
-    private String formatarDespesa(Despesa d) {
-        return String.format("[%d] %-25s %s  %-15s %s",
-                d.getId(),
-                d.getDescricao(),
-                moeda.format(d.getValor()),
-                d.getCategoria(),
-                d.getData()
-        );
     }
 }
