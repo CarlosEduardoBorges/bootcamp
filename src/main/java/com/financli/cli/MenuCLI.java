@@ -1,7 +1,9 @@
 package com.financli.cli;
 
 import com.financli.model.Categoria;
+import com.financli.model.CotacaoResponse;
 import com.financli.model.Despesa;
+import com.financli.service.CotacaoService;
 import com.financli.service.DespesaService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
@@ -26,11 +28,13 @@ public class MenuCLI implements CommandLineRunner {
     private static final String COL_SEP = " | ";
 
     private final DespesaService service;
+    private final CotacaoService cotacaoService;
     private final Scanner scanner = new Scanner(System.in);
     private final NumberFormat moeda = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
-    public MenuCLI(DespesaService service) {
+    public MenuCLI(DespesaService service, CotacaoService cotacaoService) {
         this.service = service;
+        this.cotacaoService = cotacaoService;
     }
 
     @Override
@@ -45,12 +49,13 @@ public class MenuCLI implements CommandLineRunner {
                 case "3" -> filtrarPorCategoria();
                 case "4" -> exibirResumo();
                 case "5" -> removerDespesa();
+                case "6" -> exibirCotacoes();
                 case "0" -> {
                     System.out.println("\n" + GREEN + "Até logo! Cuide bem do seu dinheiro." + RESET);
                     scanner.close();
                     return;
                 }
-                default -> System.out.println(RED + "\nOpção inválida. Digite um número de 0 a 5." + RESET);
+                default -> System.out.println(RED + "\nOpção inválida. Digite um número de 0 a 6." + RESET);
             }
         }
     }
@@ -71,6 +76,7 @@ public class MenuCLI implements CommandLineRunner {
         System.out.println("|  3. Filtrar por categoria             |");
         System.out.println("|  4. Ver resumo financeiro             |");
         System.out.println("|  5. Remover despesa                   |");
+        System.out.println("|  6. Ver cotações do dia               |");
         System.out.println("|  0. Sair                              |");
         System.out.println("+---------------------------------------+");
         System.out.print("Escolha uma opção: ");
@@ -243,6 +249,24 @@ public class MenuCLI implements CommandLineRunner {
         } catch (NumberFormatException e) {
             System.out.println(RED + "Entrada inválida. Digite o número da categoria." + RESET);
             return null;
+        }
+    }
+
+    private void exibirCotacoes() {
+        System.out.println("\n=== COTAÇÕES DO DIA ===");
+        CotacaoResponse cotacoes = cotacaoService.buscarCotacoes();
+        if (cotacoes == null) {
+            System.out.println(YELLOW + "Não foi possível "
+                + "obter cotações. Verifique sua conexão." + RESET);
+            return;
+        }
+        if (cotacoes.usdBrl() != null) {
+            System.out.printf("Dólar (USD): R$ %s%n",
+                cotacoes.usdBrl().bid());
+        }
+        if (cotacoes.eurBrl() != null) {
+            System.out.printf("Euro  (EUR): R$ %s%n",
+                cotacoes.eurBrl().bid());
         }
     }
 }
