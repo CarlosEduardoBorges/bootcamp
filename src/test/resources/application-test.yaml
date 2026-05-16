@@ -15,3 +15,7 @@ spring:
 logging:
   level:
     root: WARN
+
+cotacao:
+  api:
+    url: https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL
