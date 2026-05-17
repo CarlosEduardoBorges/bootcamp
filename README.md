@@ -3,9 +3,17 @@
 > CONTROLE DE DESPESAS PESSOAIS VIA LINHA DE COMANDO — SIMPLES, RÁPIDO E SEM DEPENDENCIAS EXTERNAS.
 
 [![CI](https://github.com/CarlosEduardoBorges/bootcamp/actions/workflows/ci.yml/badge.svg)](https://github.com/CarlosEduardoBorges/bootcamp/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.1.0-blue)
 ![Java](https://img.shields.io/badge/Java-21-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
+
+---
+
+## 🚀 APLICAÇÃO PUBLICADA
+
+A aplicação está disponível online em: **https://financli.onrender.com/actuator/health**
+
+> Health check do serviço deployado no Render.com via Docker. Após 15 minutos de inatividade o serviço hiberna — a primeira requisição pode demorar até 60 segundos.
 
 ---
 
@@ -69,6 +77,7 @@ Jovens e adultos que desejam iniciar um controle financeiro simples, sem depende
 | 3 | Filtrar por categoria | Lista apenas despesas de uma categoria específica |
 | 4 | Resumo financeiro | Exibe total geral e subtotal por categoria em tabela |
 | 5 | Remover despesa | Remove uma despesa pelo ID |
+| 6 | Cotações do dia | Exibe as cotações atuais de USD-BRL e EUR-BRL via AwesomeAPI |
 | 0 | Sair | Encerra a aplicação |
 
 **CATEGORIAS DISPONÍVEIS:** `ALIMENTACAO`, `TRANSPORTE`, `LAZER`, `SAUDE`, `EDUCACAO`, `OUTROS`
@@ -82,11 +91,15 @@ Jovens e adultos que desejam iniciar um controle financeiro simples, sem depende
 | Java | 21 | Linguagem principal |
 | Spring Boot | 3.5.13 | Framework e injeção de dependências |
 | Spring Data JPA | — | Camada de persistência |
+| Spring Web | — | Cliente HTTP para consumo de API externa (RestClient) |
+| Spring Actuator | — | Endpoint `/actuator/health` para health check no deploy |
 | H2 Database | — | Banco de dados embarcado (arquivo local) |
 | JUnit 5 | — | Testes automatizados |
 | Spring Boot Test | — | Contexto de testes com H2 em memória |
+| WireMock | 3.9.1 | Mock HTTP para testes de integração |
 | Checkstyle | 3.3.1 | Análise estática / linting |
 | Maven | 3.9.14 | Gerenciamento de build e dependências |
+| Docker | — | Containerização para deploy em nuvem |
 | GitHub Actions | — | Pipeline de CI |
 
 ---
@@ -98,6 +111,7 @@ financli/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                        # Pipeline de CI
+├── Dockerfile                            # Multi-stage build para deploy
 ├── src/
 │   ├── main/
 │   │   ├── java/com/financli/
@@ -106,18 +120,21 @@ financli/
 │   │   │   │   └── MenuCLI.java          # Interface de linha de comando
 │   │   │   ├── model/
 │   │   │   │   ├── Despesa.java          # Entidade JPA
-│   │   │   │   └── Categoria.java        # Enum de categorias
+│   │   │   │   ├── Categoria.java        # Enum de categorias
+│   │   │   │   └── CotacaoResponse.java  # DTO da API de cotações
 │   │   │   ├── repository/
 │   │   │   │   └── DespesaRepository.java
 │   │   │   └── service/
-│   │   │       └── DespesaService.java   # Regras de negócio
+│   │   │       ├── DespesaService.java   # Regras de negócio
+│   │   │       └── CotacaoService.java   # Integração com AwesomeAPI
 │   │   └── resources/
 │   │       └── application.yaml
 │   └── test/
 │       ├── java/com/financli/
 │       │   ├── FinancliApplicationTests.java
 │       │   └── service/
-│       │       └── DespesaServiceTest.java
+│       │       ├── DespesaServiceTest.java
+│       │       └── CotacaoServiceIntegrationTest.java  # Teste de integração (WireMock)
 │       └── resources/
 │           └── application-test.yaml
 ├── checkstyle.xml
@@ -169,7 +186,7 @@ O MENU INTERATIVO SERÁ EXIBIDO DIRETAMENTE NO TERMINAL:
 
 ```
 ========================================
-   Bem-vindo ao FinanCLI v1.0.0
+   Bem-vindo ao FinanCLI v1.1.0
    Seu controle de gastos pessoais
 ========================================
 
@@ -181,6 +198,7 @@ O MENU INTERATIVO SERÁ EXIBIDO DIRETAMENTE NO TERMINAL:
 |  3. Filtrar por categoria             |
 |  4. Ver resumo financeiro             |
 |  5. Remover despesa                   |
+|  6. Cotações do dia                   |
 |  0. Sair                              |
 +---------------------------------------+
 Escolha uma opção:
@@ -196,13 +214,14 @@ Escolha uma opção:
 mvn test
 ```
 
-A SUÍTE POSSUI **7 TESTES AUTOMATIZADOS** COBRINDO TRÊS CENÁRIOS:
+A SUÍTE POSSUI **9 TESTES AUTOMATIZADOS** COBRINDO QUATRO CENÁRIOS:
 
 | CENÁRIO | TESTES |
 |---|---|
 | Caminho feliz | Adicionar despesa válida, calcular total geral, filtrar por categoria, total zero sem despesas |
 | Entrada inválida | Rejeitar valor negativo, rejeitar descrição vazia (incluindo espaços em branco) |
 | Caso limite | Retornar `false` ao tentar remover ID inexistente |
+| Integração | Validar consumo da AwesomeAPI com mock WireMock |
 
 OS TESTES UTILIZAM H2 EM MEMÓRIA COM PERFIL `test`, GARANTINDO ISOLAMENTO TOTAL DO BANCO DE PRODUÇÃO.
 
@@ -275,12 +294,14 @@ Despesa registrada com sucesso! ID: 1
 
 ## VERSÃO
 
+**1.1.0** — Integração com a AwesomeAPI para consulta de cotações USD-BRL e EUR-BRL (opção 6 do menu), teste de integração com WireMock, containerização via Docker com multi-stage build e deploy no Render.com.
+
 **1.0.0** — Versão inicial com funcionalidades CRUD completas, interface tabular colorida, 7 testes automatizados, Checkstyle e pipeline CI/CD via GitHub Actions.
 
 O versionamento segue o padrão **MAJOR.MINOR.PATCH** (Semantic Versioning). A versão está declarada no `pom.xml`:
 
 ```xml
-<version>1.0.0</version>
+<version>1.1.0</version>
 ```
 
 ---

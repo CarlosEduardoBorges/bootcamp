@@ -7,6 +7,25 @@ e este projeto adota o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [1.1.0] - 2026-05-17
+
+### Adicionado
+- Integração com a AwesomeAPI para consulta de cotações USD-BRL e EUR-BRL (opção 6 do menu)
+- Teste de integração com WireMock para validar o fluxo de consumo da API
+- Containerização via Docker (multi-stage build) para deploy em nuvem
+- Endpoint `/actuator/health` para health check do serviço deployado
+- Profile `cloud` para execução headless em container (sem CLI interativo)
+
+### Modificado
+- URL da API de cotações extraída para `application.yaml` (`cotacao.api.url`), permitindo override em testes
+- Trigger do GitHub Actions ampliado para incluir a branch `entrega-intermediaria`
+- `open-in-view` desativado no JPA para suprimir warning desnecessário
+
+### Tecnologias
+- Java 21, Spring Boot 3.5.13, Spring Web, Spring Actuator, WireMock 3.9.1, Docker, Render.com
+
+---
+
 ## [1.0.0] - 2026-04-12
 
 ### Adicionado
@@ -33,4 +52,5 @@ e este projeto adota o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+[1.1.0]: https://github.com/CarlosEduardoBorges/bootcamp/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/CarlosEduardoBorges/bootcamp/releases/tag/v1.0.0
