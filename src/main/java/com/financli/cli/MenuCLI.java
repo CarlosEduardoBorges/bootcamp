@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 @Component
-@Profile("!test")
+@Profile("!test & !cloud")
 public class MenuCLI implements CommandLineRunner {
 
     private static final String RESET = "\u001B[0m";
